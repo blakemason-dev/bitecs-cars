@@ -7,38 +7,28 @@ import {
 import { Player } from '../components/Player';
 import { Position } from '../components/Position';
 import { Velocity } from '../components/Velocity';
-import { Rotation } from '../components/Rotation';
+import { Direction, Input  } from '../components/Input';
 
 export const createPlayerSystem = (cursors: Phaser.Types.Input.Keyboard.CursorKeys) => {
-    const query = defineQuery([Player, Position, Velocity]);
-    const SPEED = 5;
+    const query = defineQuery([Player, Position, Velocity, Input]);
 
     return defineSystem((world: IWorld) => {
         const entities = query(world);
         entities.map(eid => {
             if (cursors.left.isDown) {
-                Velocity.x[eid] = -SPEED;
-                Velocity.y[eid] = 0;
-                Rotation.angle[eid] = 180;
+                Input.direction[eid] = Direction.Left;
             }
             else if (cursors.right.isDown) {
-                Velocity.x[eid] = SPEED;
-                Velocity.y[eid] = 0;
-                Rotation.angle[eid] = 0;
+                Input.direction[eid] = Direction.Right;
             }
             else if (cursors.up.isDown) {
-                Velocity.x[eid] = 0;
-                Velocity.y[eid] = -SPEED;
-                Rotation.angle[eid] = -90;
+                Input.direction[eid] = Direction.Up;
             }
             else if (cursors.down.isDown) {
-                Velocity.x[eid] = 0;
-                Velocity.y[eid] = SPEED;
-                Rotation.angle[eid] = 90;
+                Input.direction[eid] = Direction.Down;
             }
             else {
-                Velocity.x[eid] = 0;
-                Velocity.y[eid] = 0;
+                Input.direction[eid] = Direction.None;
             }
         });
 

@@ -8,21 +8,27 @@ import {
     System
 } from 'bitecs';
 
+// import components
 import { Position } from "../components/Position";
 import { Rotation } from "../components/Rotation";
 import { Velocity } from "../components/Velocity";
 import { Sprite } from "../components/Sprite";
 import { Player } from "../components/Player";
+import { CPU } from "../components/CPU";
 
+// import systems
 import { createSpriteSystem } from "../systems/SpriteSystem";
 import { createMovementSystem } from "../systems/MovementSystem";
 import { createPlayerSystem } from "../systems/PlayerSystem";
+import { createCPUSystem } from "../systems/CPUSystem";
+import { Direction, Input } from "../components/Input";
 
 export default class Game extends Phaser.Scene {
     private world?: IWorld;
     private spriteSystem?: System;
     private movementSystem?: System;
     private playerSystem?: System;
+    private cpuSystem?: System;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     
     constructor() {
@@ -42,6 +48,7 @@ export default class Game extends Phaser.Scene {
     create() {
         this.world = createWorld();
 
+        // create the player cars
         const car = addEntity(this.world);
 
         addComponent(this.world, Position ,car);    
@@ -61,20 +68,49 @@ export default class Game extends Phaser.Scene {
         addComponent(this.world, Player, car);
         Player.name[car] = 0;
 
-        this.spriteSystem = createSpriteSystem(this, ['car-red', 'car-green', 'car-blue']);
-        this.movementSystem = createMovementSystem();
-        this.playerSystem = createPlayerSystem(this.cursors);
+        addComponent(this.world, Input, car);
+        Input.direction[car] = Direction.None;
+        Input.speed[car] = 5;
 
-        // TODO: create entities
-        // TODO: attach components
-        // TODO: create systems
+        // create cpu cars
+        for (let i = 0; i < 20; i++) {
+            const tank = addEntity(this.world);
+
+            addComponent(this.world, Position, tank);
+            Position.x[tank] = Phaser.Math.Between(0,this.game.canvas.width);
+            Position.y[tank] = Phaser.Math.Between(0,this.game.canvas.height);
+
+            addComponent(this.world, Rotation, tank);
+            Rotation.angle[car] = 0;
+
+            addComponent(this.world, Velocity, tank);
+            Velocity.x[tank] = 0;
+            Velocity.y[tank] = 0;
+
+            addComponent(this.world, Sprite, tank);
+            Sprite.texture[tank] = Phaser.Math.Between(1,2);
+
+            addComponent(this.world, CPU, tank);
+            CPU.accumulatedTime[tank] = 0;
+            CPU.timeBetweenActions[tank] = 100;
+
+            addComponent(this.world, Input, tank);
+            Input.direction[tank] = Direction.None;
+            Input.speed[tank] = Phaser.Math.Between(2, 5);
+        }
+
+        this.playerSystem = createPlayerSystem(this.cursors);
+        this.cpuSystem = createCPUSystem(this);
+        this.movementSystem = createMovementSystem();
+        this.spriteSystem = createSpriteSystem(this, ['car-red', 'car-green', 'car-blue']);
     }
 
     update(t: number, dt: number) {
         if (!this.world) return;
 
-        // TODO: run systems
+        // run systems
         this.playerSystem?.(this.world);
+        this.cpuSystem?.(this.world);
         this.movementSystem?.(this.world);
         this.spriteSystem?.(this.world);
     }
